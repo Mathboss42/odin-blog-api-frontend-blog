@@ -1,5 +1,4 @@
 <script setup>
-import PostComponent from '../components/PostComponent.vue';
 import { onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 
@@ -31,11 +30,9 @@ onMounted(async () => {
     <main>
         <ul>
             <li v-for="post in posts" :key="post._id">
-                <RouterLink :to="{ name: 'post', params: { id: post._id }}">{{ post.title }}</RouterLink>
+                <RouterLink :to="{ name: 'post', params: { id: post._id }}"><h2>{{ post.title }}</h2></RouterLink>
+                <p>- By {{ post.author.username }}</p>
             </li>
         </ul>
-        <div >
-            <PostComponent />
-        </div>
     </main>
 </template>
