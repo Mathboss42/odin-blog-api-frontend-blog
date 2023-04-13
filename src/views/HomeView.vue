@@ -1,5 +1,4 @@
 <script setup>
-import { storeToRefs } from 'pinia';
 import { onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useBlogStore } from '../stores/blog';
