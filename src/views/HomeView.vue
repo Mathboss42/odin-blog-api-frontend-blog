@@ -1,13 +1,15 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue';
+import { storeToRefs } from 'pinia';
+import { onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useBlogStore } from '../stores/blog';
 
-const store = ref(useBlogStore());
+const store = useBlogStore();
 
 const posts = ref();
 
 onMounted(async () => {
+    console.log(store.isLoggedIn)
     try {
         const data = await fetch('http://localhost:8092/api/posts')
         .then(function (response) {
@@ -31,8 +33,7 @@ onMounted(async () => {
 
 <template>
     <main>
-        <div>is logged in ? {{ store.isLoggedIn }}</div>
-        <RouterLink v-if="store.isLoggedIn" to="/login">Log In</RouterLink>
+        <RouterLink v-if="!store.isLoggedIn.valueOf()" to="/login">Log In</RouterLink>
         <RouterLink v-else to="/logout">Log Out</RouterLink>
         <ul>
             <li v-for="post in posts" :key="post._id">
