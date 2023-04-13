@@ -1,6 +1,9 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { RouterLink } from 'vue-router';
+import { useBlogStore } from '../stores/blog';
+
+const store = ref(useBlogStore());
 
 const posts = ref();
 
@@ -28,6 +31,9 @@ onMounted(async () => {
 
 <template>
     <main>
+        <div>is logged in ? {{ store.isLoggedIn }}</div>
+        <RouterLink v-if="store.isLoggedIn" to="/login">Log In</RouterLink>
+        <RouterLink v-else to="/logout">Log Out</RouterLink>
         <ul>
             <li v-for="post in posts" :key="post._id">
                 <RouterLink :to="{ name: 'post', params: { id: post._id }}"><h2>{{ post.title }}</h2></RouterLink>
