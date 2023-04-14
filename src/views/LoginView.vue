@@ -1,4 +1,5 @@
 <script setup>
+import axios from 'axios';
 import { useBlogStore } from '../stores/blog';
 import { useRouter } from 'vue-router';
 
@@ -15,34 +16,24 @@ async function handleLogin(e) {
     for (const [name, value] of data) {
         values.push(value);
     }
-
+    
     const user = {
         username: values[0],
         password: values[1]
     };
 
-    const response = await postData(user);
-    console.log('response', response);
-
-    if (response.token) {
-        localStorage.setItem('token', response.token);
+    form.reset();
+    
+    const response = await axios.post('http://localhost:8092/auth', user);
+    console.log('response', response.data.token);
+    
+    
+    if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
         store.isLoggedIn = true;
         router.push('/');
     }
-}
-
-async function postData(data) {
-    const response = await fetch('http://localhost:8092/auth', {
-        method: "POST", // *GET, POST, PUT, DELETE, etc.
-        mode: "cors", // no-cors, *cors, same-origin
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data), // body data type must match "Content-Type" header
-    });
-
-    const result = await response.json();
-    return result;
+    
 }
 
 </script>

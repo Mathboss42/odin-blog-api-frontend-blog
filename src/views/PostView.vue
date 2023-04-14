@@ -101,12 +101,13 @@ async function postData(data) {
         <p>{{ post.text }}</p>
         <p>-Written by {{ post.author.username }}</p>
     </div>
-    <form :onsubmit="handleNewComment" id="theform">
+    <form v-if="store.isLoggedIn" :onsubmit="handleNewComment" id="theform">
         <p>Write A Comment</p>
         <textarea name="text" id="text" cols="100" rows="5"></textarea>
         <input type="hidden" name="post" :value="props.id">
         <button type="submit">Submit</button>
     </form>
+    <div v-else class="comment-message">You must be logged in to comment.</div>
     <ul>
         <li v-for="comment in comments" :key="comment._id">
             <p>{{ comment.text }}</p>
@@ -117,7 +118,7 @@ async function postData(data) {
 </template>
 
 <style scoped>
-form {
+form, .comment-message {
     display: flex;
     flex-direction: column;
     align-items: center;

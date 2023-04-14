@@ -1,17 +1,5 @@
 <script setup>
-import { onMounted } from 'vue';
 import { RouterLink, RouterView } from 'vue-router';
-import { useBlogStore } from './stores/blog';
-
-const store = useBlogStore();
-
-onMounted(() => {
-  const token = localStorage.getItem('token');
-
-  if (token) {
-    store.isLoggedIn = true;
-  }
-});
 
 </script>
 
