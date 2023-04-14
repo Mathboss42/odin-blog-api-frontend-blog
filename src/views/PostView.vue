@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useBlogStore } from '../stores/blog';
+import axios from 'axios';
 
 const store = useBlogStore();
 
@@ -31,18 +32,28 @@ onMounted(async function() {
         const postResult = await postData.json();
         post.value = postResult.post;  
         
-        const commentData = await fetch(`http://localhost:8092/api/posts/${props.id}/comments`)
-            .then(function (response) {
-                if (!response.ok) {
-                    throw new Error("Not 2xx response", {cause: response});
-                } else {
-                    return response;
+        let commentData;
+
+        if (store.isLoggedIn) {
+            commentData = await axios.post(`http://localhost:8092/api/posts/${props.id}/comments`, {}, { 
+                headers: { 
+                'Authorization': `Bearer ${localStorage.getItem('token')}` 
                 }
-            }).catch(function(err) {
-                console.log(err);
             });
-        const commentResult = await commentData.json();
-        comments.value = commentResult.comments;  
+        } else {
+            commentData = await axios.get(`http://localhost:8092/api/posts/${props.id}/comments`, {}, { 
+                headers: { 
+                'Authorization': `Bearer ${localStorage.getItem('token')}` 
+                }
+            })
+        }
+        
+        const commentResult = commentData.data.comments;
+        comments.value = commentResult;  
+
+        for (let comment of comments.value) {
+            comment.isEditing = false;
+        }
 
         console.log(comments.value);
         
@@ -89,6 +100,14 @@ async function postData(data) {
     const result = await response.json();
     return result;
 }
+
+function toggleEdit(e, comment) {
+    comment.isEditing = !comment.isEditing;
+}
+
+function handleCommentUpdate(e) {
+
+}
 </script>
 
 <template>
@@ -112,6 +131,12 @@ async function postData(data) {
         <li v-for="comment in comments" :key="comment._id">
             <p>{{ comment.text }}</p>
             <p>- {{ comment.author.username }}</p>
+            <button :onclick="(e) => toggleEdit(e, comment)" v-if="comment.isEditable && !comment.isEditing">Edit</button>
+            <form v-else-if="comment.isEditable && comment.isEditing">
+                <textarea name="text" id="text" cols="100" rows="5"></textarea>
+                <input type="hidden" name="post" :value="props.id">
+                <button :onclick="handleCommentUpdate">Update Comment</button>
+            </form>
         </li>
     </ul>
   </main>
