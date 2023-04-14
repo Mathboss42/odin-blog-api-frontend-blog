@@ -34,11 +34,12 @@ const router = createRouter({
   ]
 })
 
+// eslint-disable-next-line no-unused-vars
 router.beforeEach(async (to, from) => {
   
   const store = useBlogStore();
 
-  console.log('beforeEach')
+  console.log('beforeEach isloggedin?', store.isLoggedIn);
 
   if (localStorage.getItem('token')) {
     try {
@@ -47,14 +48,16 @@ router.beforeEach(async (to, from) => {
           'Authorization': `Bearer ${localStorage.getItem('token')}` 
         }
       });
-
       if (response.status === 200) {
         store.isLoggedIn = true;
       } else {
+        localStorage.removeItem('token');
         store.isLoggedIn = false;
       }
     } catch (err) {
       console.log(err);
+      localStorage.removeItem('token');
+      store.isLoggedIn = false;
     }
   } else {
     store.isLoggedIn = false;

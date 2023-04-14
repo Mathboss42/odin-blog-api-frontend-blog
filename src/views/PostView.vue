@@ -2,6 +2,9 @@
 import { onMounted, ref } from 'vue';
 import { useBlogStore } from '../stores/blog';
 import axios from 'axios';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
 
 const store = useBlogStore();
 
@@ -32,30 +35,7 @@ onMounted(async function() {
         const postResult = await postData.json();
         post.value = postResult.post;  
         
-        let commentData;
-
-        if (store.isLoggedIn) {
-            commentData = await axios.post(`http://localhost:8092/api/posts/${props.id}/comments`, {}, { 
-                headers: { 
-                'Authorization': `Bearer ${localStorage.getItem('token')}` 
-                }
-            });
-        } else {
-            commentData = await axios.get(`http://localhost:8092/api/posts/${props.id}/comments`, {}, { 
-                headers: { 
-                'Authorization': `Bearer ${localStorage.getItem('token')}` 
-                }
-            })
-        }
-        
-        const commentResult = commentData.data.comments;
-        comments.value = commentResult;  
-
-        for (let comment of comments.value) {
-            comment.isEditing = false;
-        }
-
-        console.log(comments.value);
+        fetchComments();
         
         loading.value = false;
     } catch (err) {
@@ -63,6 +43,33 @@ onMounted(async function() {
         post.value = 'posts couldnt be fetched';
     }
 });
+
+async function fetchComments() {
+    let commentData;
+
+    if (store.isLoggedIn) {
+        commentData = await axios.post(`http://localhost:8092/api/posts/${props.id}/comments`, {}, { 
+            headers: { 
+            'Authorization': `Bearer ${localStorage.getItem('token')}` 
+            }
+        });
+    } else {
+        commentData = await axios.get(`http://localhost:8092/api/posts/${props.id}/comments`, {}, { 
+            headers: { 
+            'Authorization': `Bearer ${localStorage.getItem('token')}` 
+            }
+        })
+    }
+    
+    const commentResult = commentData.data.comments;
+    comments.value = commentResult;  
+
+    for (let comment of comments.value) {
+        comment.isEditing = false;
+    }
+
+    console.log(comments.value);
+}
 
 
 async function handleNewComment(e) {
@@ -126,6 +133,20 @@ async function handleCommentUpdate(e, comment) {
         }
     });
 }
+
+async function handleCommentDelete(e, comment) {
+    try {
+        const response = await axios.delete(`http://localhost:8092/api/comments/${comment._id}`, {
+            headers: { 
+                'Authorization': `Bearer ${localStorage.getItem('token')}` 
+            }
+        })
+
+        fetchComments();
+    } catch (err) {
+        console.log(err);
+    }
+}
 </script>
 
 <template>
@@ -149,7 +170,10 @@ async function handleCommentUpdate(e, comment) {
         <li v-for="comment in comments" :key="comment._id">
             <p>{{ comment.text }}</p>
             <p>- {{ comment.author.username }}</p>
-            <button :onclick="(e) => toggleEdit(e, comment)" v-if="comment.isEditable && !comment.isEditing">Edit</button>
+            <div v-if="comment.isEditable && !comment.isEditing">
+                <button :onclick="(e) => toggleEdit(e, comment)">Edit</button>
+                <button :onclick="(e) => handleCommentDelete(e, comment)">Delete</button>
+            </div>
             <form v-else-if="comment.isEditable && comment.isEditing" id="updateform">
                 <textarea name="text" id="text" cols="100" rows="5" :value="comment.text"></textarea>
                 <input type="hidden" name="post" :value="props.id">
