@@ -105,8 +105,26 @@ function toggleEdit(e, comment) {
     comment.isEditing = !comment.isEditing;
 }
 
-function handleCommentUpdate(e) {
+async function handleCommentUpdate(e, comment) {
+    // e.preventDefault();
+    const form = document.getElementById('updateform');
+    const data = new FormData(form);
+    let values = [];
+    // eslint-disable-next-line no-unused-vars
+    for (const [name, value] of data) {
+        values.push(value);
+    }
 
+    const newData = {
+        text: values[0],
+        post: values[1]
+    };
+
+    const response = await axios.put(`http://localhost:8092/api/comments/${comment._id}`, newData, { 
+        headers: { 
+            'Authorization': `Bearer ${localStorage.getItem('token')}` 
+        }
+    });
 }
 </script>
 
@@ -132,10 +150,10 @@ function handleCommentUpdate(e) {
             <p>{{ comment.text }}</p>
             <p>- {{ comment.author.username }}</p>
             <button :onclick="(e) => toggleEdit(e, comment)" v-if="comment.isEditable && !comment.isEditing">Edit</button>
-            <form v-else-if="comment.isEditable && comment.isEditing">
-                <textarea name="text" id="text" cols="100" rows="5"></textarea>
+            <form v-else-if="comment.isEditable && comment.isEditing" id="updateform">
+                <textarea name="text" id="text" cols="100" rows="5" :value="comment.text"></textarea>
                 <input type="hidden" name="post" :value="props.id">
-                <button :onclick="handleCommentUpdate">Update Comment</button>
+                <button :onclick="(e) => handleCommentUpdate(e, comment)">Update Comment</button>
             </form>
         </li>
     </ul>
