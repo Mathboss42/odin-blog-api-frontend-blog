@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import axios from 'axios';
+import { useBlogStore } from '../stores/blog';
 import HomeView from '../views/HomeView.vue';
 import PostView from '../views/PostView.vue';
 import LoginView from '../views/LoginView.vue';
@@ -31,5 +33,32 @@ const router = createRouter({
     }
   ]
 })
+
+router.beforeEach(async (to, from) => {
+  
+  const store = useBlogStore();
+
+  console.log('beforeEach')
+
+  if (localStorage.getItem('token')) {
+    try {
+      const response = await axios.post('http://localhost:8092/auth/isLoggedIn', {}, { 
+        headers: { 
+          'Authorization': `Bearer ${localStorage.getItem('token')}` 
+        }
+      });
+
+      if (response.status === 200) {
+        store.isLoggedIn = true;
+      } else {
+        store.isLoggedIn = false;
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  } else {
+    store.isLoggedIn = false;
+  }
+});
 
 export default router
